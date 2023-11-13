@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/badmagick329/rssreader/internal/handlers"
 	"github.com/badmagick329/rssreader/internal/router"
 	"github.com/joho/godotenv"
 )
@@ -11,8 +12,11 @@ import (
 func Execute() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
+	dbUrl := os.Getenv("DB_URL")
 	fmt.Println("PORT is set to", port)
 	r := router.New(port)
-	r.AddRoute("GET", "/v1", "/healthz", router.HandlerReadiness)
+	cfg := handlers.New(dbUrl)
+	r.AddRoute("GET", "/v1", "/healthz", handlers.HandlerReadiness)
+	r.AddRoute("POST", "/v1", "/users", cfg.HandlerCreateUser)
 	r.Run()
 }

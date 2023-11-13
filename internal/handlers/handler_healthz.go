@@ -1,9 +1,8 @@
-package router
+package handlers
 
 import (
-	"net/http"
-
 	"github.com/badmagick329/rssreader/internal/utils"
+	"net/http"
 )
 
 func HandlerReadiness(w http.ResponseWriter, r *http.Request) {

@@ -37,21 +37,27 @@ func New(port string) Router {
 }
 
 func (r *Router) AddRoute(method, basePath, path string, handler http.HandlerFunc) {
-	subRouter := r.getSubRouter(basePath)
+	subRouter, created := r.getSubRouter(basePath)
 	subRouter.Router.Method(method, path, handler)
-	r.Router.Mount(subRouter.BasePath, subRouter.Router)
+	if created {
+		r.Router.Mount(subRouter.BasePath, subRouter.Router)
+	}
+	newSlice := append(*r.SubRouters, *subRouter)
+	r.SubRouters = &newSlice
 }
 
-func (r *Router) getSubRouter(basePath string) *SubRouter {
+func (r *Router) getSubRouter(basePath string) (*SubRouter, bool) {
+	log.Printf("Searching for basePath %s. SubRouters are: %v\n", basePath, r.SubRouters)
 	for _, subRouter := range *r.SubRouters {
 		if subRouter.BasePath == basePath {
-			return &subRouter
+			log.Printf("Base path %s already exists\n", subRouter.BasePath)
+			return &subRouter, false
 		}
 	}
 	return &SubRouter{
 		chi.NewRouter(),
 		basePath,
-	}
+	}, true
 }
 
 func (r *Router) Run() {
