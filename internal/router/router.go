@@ -47,10 +47,8 @@ func (r *Router) AddRoute(method, basePath, path string, handler http.HandlerFun
 }
 
 func (r *Router) getSubRouter(basePath string) (*SubRouter, bool) {
-	log.Printf("Searching for basePath %s. SubRouters are: %v\n", basePath, r.SubRouters)
 	for _, subRouter := range *r.SubRouters {
 		if subRouter.BasePath == basePath {
-			log.Printf("Base path %s already exists\n", subRouter.BasePath)
 			return &subRouter, false
 		}
 	}

@@ -31,3 +31,14 @@ func (cfg *Config) HandlerCreateFeed(w http.ResponseWriter, r *http.Request, use
 	feedResponse := databaseFeedToFeed(feed)
 	utils.RespondWithJSON(w, 201, feedResponse)
 }
+
+func (cfg *Config) HandlerGetFeeds(w http.ResponseWriter, r *http.Request) {
+	dbFeeds, err := cfg.DB.GetFeedsAll(r.Context())
+	if err != nil {
+		log.Printf("Error getting feeds. %v", err)
+		utils.RespondWithError(w, 500, "Error getting feeds")
+		return
+	}
+	feeds := databaseFeedsToFeeds(dbFeeds)
+	utils.RespondWithJSON(w, 200, feeds)
+}

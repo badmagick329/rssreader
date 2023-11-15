@@ -4,30 +4,22 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/badmagick329/rssreader/internal/auth"
+	"github.com/badmagick329/rssreader/internal/database"
 	"github.com/badmagick329/rssreader/internal/handlers"
 	"github.com/google/uuid"
 )
 
-type FeedResponse struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Url       string    `json:"url"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UserID    uuid.UUID `json:"user_id"`
-}
-
 var testBody = bytes.NewReader([]byte(`{"name":"test","url":"https://www.test.com"}`))
 
 func TestCreateFeed(t *testing.T) {
-	cfg := handlers.New(DB_URL)
+	cfg := handlers.New(TEST_DB_URL)
 	ctx := context.Background()
 	cfg.ClearDB(ctx)
 	defer cfg.Close()
@@ -80,19 +72,72 @@ func TestCreateFeed(t *testing.T) {
 				t.Errorf("got %d, want %d", got, tc.wantCode)
 			}
 			if got == http.StatusCreated {
-				var resp FeedResponse
-				json.Unmarshal([]byte(response.Body.String()), &resp)
-				if resp.Name != tc.wantName {
-					t.Errorf("got %s, want %s", resp.Name, tc.wantName)
+				var gotFeed handlers.Feed
+				decoder := json.NewDecoder(response.Body)
+				decoder.Decode(&gotFeed)
+				if gotFeed.Name != tc.wantName {
+					t.Errorf("got %s, want %s", gotFeed.Name, tc.wantName)
 				}
-				if resp.Url != tc.wantUrl {
-					t.Errorf("got %s, want %s", resp.Url, tc.wantUrl)
+				if gotFeed.Url != tc.wantUrl {
+					t.Errorf("got %s, want %s", gotFeed.Url, tc.wantUrl)
 				}
-				if resp.UserID != tc.wantUserID {
-					t.Errorf("got %s, want %s", resp.UserID, tc.wantUserID)
+				if gotFeed.UserID != tc.wantUserID {
+					t.Errorf("got %s, want %s", gotFeed.UserID, tc.wantUserID)
 				}
 			}
 		})
 	}
 }
 
+func TestGetFeeds(t *testing.T) {
+	cfg := handlers.New(TEST_DB_URL)
+	ctx := context.Background()
+	cfg.ClearDB(ctx)
+	users := CreateDummyUsers(&cfg, ctx, 1)
+	user := users[0]
+	// feeds := CreateDummyFeeds(&cfg, ctx, user, 3)
+	CreateDummyFeeds(&cfg, ctx, user, 3)
+	tests := map[string]struct {
+		wantCode int
+	}{
+		"feeds are returned": {
+			wantCode: http.StatusOK,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			request, _ := http.NewRequest("GET", "/v1/feeds", nil)
+			response := httptest.NewRecorder()
+			cfg.HandlerGetFeeds(response, request)
+			if response.Code != tc.wantCode {
+				t.Errorf("got %d, want %d", response.Code, tc.wantCode)
+			}
+			var gotFeeds []handlers.Feed
+			decoder := json.NewDecoder(response.Body)
+			decoder.Decode(&gotFeeds)
+			for _, f := range gotFeeds {
+				if f.UserID != user.ID {
+					t.Errorf("got %s, want %s", f.UserID, user.ID)
+				}
+			}
+		})
+	}
+}
+
+func CreateDummyFeeds(
+	cfg *handlers.Config,
+	ctx context.Context,
+	user database.User,
+	n int,
+) []database.Feed {
+	feeds := make([]database.Feed, n)
+	for i := 0; i < n; i++ {
+		feedName := fmt.Sprintf("feed_%d", i)
+		feedUrl := fmt.Sprintf("http://%s.com", feedName)
+		feedParams := handlers.GetFeedCreateParams(feedName, feedUrl, user.ID)
+		feed, _ := cfg.DB.CreateFeed(ctx, feedParams)
+		feeds[i] = feed
+	}
+	return feeds
+
+}

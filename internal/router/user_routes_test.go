@@ -61,7 +61,7 @@ func TestCreateUser(t *testing.T) {
 			wantBody: "",
 		},
 	}
-	cfg := handlers.New(DB_URL)
+	cfg := handlers.New(TEST_DB_URL)
 	cfg.ClearDB(context.Background())
 	defer cfg.Close()
 	for name, tc := range tests {
@@ -103,7 +103,7 @@ func TestGetUserSuccess(t *testing.T) {
 	}
 	tests := map[string]TestCase{}
 	ctx := context.Background()
-	cfg := handlers.New(DB_URL)
+	cfg := handlers.New(TEST_DB_URL)
 	cfg.ClearDB(ctx)
 	users, err := cfg.DB.GetUsers(ctx)
 	if err != nil {
@@ -173,7 +173,7 @@ func TestGetUserFail(t *testing.T) {
 			wantCode: http.StatusUnauthorized,
 		},
 	}
-	cfg := handlers.New(DB_URL)
+	cfg := handlers.New(TEST_DB_URL)
 	ctx := context.Background()
 	cfg.ClearDB(ctx)
 	CreateDummyUsers(&cfg, ctx, 3)

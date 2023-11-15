@@ -45,6 +45,14 @@ func databaseFeedToFeed(dbFeed database.Feed) Feed {
 	}
 }
 
+func databaseFeedsToFeeds(dbFeeds []database.Feed) []Feed {
+	feeds := make([]Feed, len(dbFeeds))
+	for i, dbFeed := range dbFeeds {
+		feeds[i] = databaseFeedToFeed(dbFeed)
+	}
+	return feeds
+}
+
 func GetUserCreateParams(name string) database.CreateUserParams {
 	return database.CreateUserParams{
 		ID:        uuid.New(),

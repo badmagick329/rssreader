@@ -19,6 +19,7 @@ func Execute() {
 	r.AddRoute("GET", "/v1", "/healthz", handlers.HandlerReadiness)
 	r.AddRoute("POST", "/v1", "/users", cfg.HandlerCreateUser)
 	r.AddRoute("GET", "/v1", "/users", cfg.MiddlewareAuth(cfg.HandlerGetUserAuthed))
-	// r.AddRoute("POST", "/v1", "/feeds", cfg.MiddlewareAuth(cfg.HandlerCreateFeed))
+	r.AddRoute("POST", "/v1", "/feeds", cfg.MiddlewareAuth(cfg.HandlerCreateFeed))
+	r.AddRoute("GET", "/v1", "/feeds", cfg.HandlerGetFeeds)
 	r.Run()
 }
