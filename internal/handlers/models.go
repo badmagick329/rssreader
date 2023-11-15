@@ -24,7 +24,15 @@ type Feed struct {
 	UserID    uuid.UUID `json:"user_id"`
 }
 
-func databaseUserToUser(dbUser database.User) User {
+type FeedFollow struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	FeedID    uuid.UUID `json:"feed_id"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
+func DatabaseUserToUser(dbUser database.User) User {
 	return User{
 		ID:        dbUser.ID,
 		Name:      dbUser.Name,
@@ -34,7 +42,7 @@ func databaseUserToUser(dbUser database.User) User {
 	}
 }
 
-func databaseFeedToFeed(dbFeed database.Feed) Feed {
+func DatabaseFeedToFeed(dbFeed database.Feed) Feed {
 	return Feed{
 		ID:        dbFeed.ID,
 		CreatedAt: dbFeed.CreatedAt,
@@ -45,12 +53,30 @@ func databaseFeedToFeed(dbFeed database.Feed) Feed {
 	}
 }
 
-func databaseFeedsToFeeds(dbFeeds []database.Feed) []Feed {
+func DatabaseFeedsToFeeds(dbFeeds []database.Feed) []Feed {
 	feeds := make([]Feed, len(dbFeeds))
 	for i, dbFeed := range dbFeeds {
-		feeds[i] = databaseFeedToFeed(dbFeed)
+		feeds[i] = DatabaseFeedToFeed(dbFeed)
 	}
 	return feeds
+}
+
+func databaseFeedFollowToFeedFollow(dbFeedFollow database.FeedFollow) FeedFollow {
+	return FeedFollow{
+		ID:        dbFeedFollow.ID,
+		CreatedAt: dbFeedFollow.CreatedAt,
+		UpdatedAt: dbFeedFollow.UpdatedAt,
+		FeedID:    dbFeedFollow.FeedID,
+		UserID:    dbFeedFollow.UserID,
+	}
+}
+
+func databaseFeedFollowsToFeedFollows(dbFeedFollows []database.FeedFollow) []FeedFollow {
+	feedFollows := make([]FeedFollow, len(dbFeedFollows))
+	for i, dbFeedFollow := range dbFeedFollows {
+		feedFollows[i] = databaseFeedFollowToFeedFollow(dbFeedFollow)
+	}
+	return feedFollows
 }
 
 func GetUserCreateParams(name string) database.CreateUserParams {
@@ -72,3 +98,14 @@ func GetFeedCreateParams(name, url string, userId uuid.UUID) database.CreateFeed
 		UserID:    userId,
 	}
 }
+
+func GetFeedFollowCreateParams(feedId, userId uuid.UUID) database.CreateFeedFollowParams {
+	return database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		FeedID:    feedId,
+		UserID:    userId,
+	}
+}
+

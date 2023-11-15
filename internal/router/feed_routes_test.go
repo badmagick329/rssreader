@@ -93,6 +93,7 @@ func TestGetFeeds(t *testing.T) {
 	cfg := handlers.New(TEST_DB_URL)
 	ctx := context.Background()
 	cfg.ClearDB(ctx)
+	defer cfg.Close()
 	users := CreateDummyUsers(&cfg, ctx, 1)
 	user := users[0]
 	// feeds := CreateDummyFeeds(&cfg, ctx, user, 3)

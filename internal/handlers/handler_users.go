@@ -36,7 +36,7 @@ func (cfg *Config) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error creating user: %s", err)
 		utils.RespondWithError(w, 500, "Error creating user")
 	}
-	returnUser := databaseUserToUser(user)
+	returnUser := DatabaseUserToUser(user)
 	utils.RespondWithJSON(w, 201, returnUser)
 }
 
@@ -45,7 +45,7 @@ func (cfg *Config) HandlerGetUserAuthed(
 	r *http.Request,
 	user database.User,
 ) {
-	utils.RespondWithJSON(w, 200, databaseUserToUser(user))
+	utils.RespondWithJSON(w, 200, DatabaseUserToUser(user))
 }
 
 func (cfg *Config) HandlerGetUser(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +59,6 @@ func (cfg *Config) HandlerGetUser(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, 403, "Invalid API key")
 		return
 	}
-	returnUser := databaseUserToUser(user)
+	returnUser := DatabaseUserToUser(user)
 	utils.RespondWithJSON(w, 200, returnUser)
 }

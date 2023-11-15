@@ -11,7 +11,7 @@ VALUES
     $6
   ) RETURNING *;
 
--- name: GetFeeds :many
+-- name: GetFeedsByUserID :many
 SELECT
   *
 FROM
@@ -36,3 +36,6 @@ WHERE
 -- name: RemoveAllFeeds :exec
 DELETE FROM
   feeds;
+
+-- name: GetFeedByID :one
+SELECT * FROM feeds WHERE id=$1;

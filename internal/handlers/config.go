@@ -15,7 +15,6 @@ type Config struct {
 }
 
 func New(dbUrl string) Config {
-	// dbUrl := "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
 	if dbUrl == "" {
 		log.Fatal("DB_URL not found in env file")
 	}
@@ -35,3 +34,4 @@ func (cfg *Config) ClearDB(ctx context.Context) {
 	cfg.DB.RemoveAllUsers(ctx)
 	cfg.DB.RemoveAllFeeds(ctx)
 }
+

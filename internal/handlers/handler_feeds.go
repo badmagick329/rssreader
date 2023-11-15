@@ -28,7 +28,13 @@ func (cfg *Config) HandlerCreateFeed(w http.ResponseWriter, r *http.Request, use
 		log.Printf("Error creating feed: %s", err)
 		utils.RespondWithError(w, 500, "Error creating feed")
 	}
-	feedResponse := databaseFeedToFeed(feed)
+	feedResponse := DatabaseFeedToFeed(feed)
+	feedFollowParams := GetFeedFollowCreateParams(feed.ID, user.ID)
+	_, err = cfg.DB.CreateFeedFollow(r.Context(), feedFollowParams)
+	if err != nil {
+		log.Printf("Error creating feed follow: %s", err)
+		utils.RespondWithError(w, 500, "Error creating feed follow")
+	}
 	utils.RespondWithJSON(w, 201, feedResponse)
 }
 
@@ -39,6 +45,6 @@ func (cfg *Config) HandlerGetFeeds(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, 500, "Error getting feeds")
 		return
 	}
-	feeds := databaseFeedsToFeeds(dbFeeds)
+	feeds := DatabaseFeedsToFeeds(dbFeeds)
 	utils.RespondWithJSON(w, 200, feeds)
 }

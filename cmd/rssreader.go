@@ -21,5 +21,7 @@ func Execute() {
 	r.AddRoute("GET", "/v1", "/users", cfg.MiddlewareAuth(cfg.HandlerGetUserAuthed))
 	r.AddRoute("POST", "/v1", "/feeds", cfg.MiddlewareAuth(cfg.HandlerCreateFeed))
 	r.AddRoute("GET", "/v1", "/feeds", cfg.HandlerGetFeeds)
+	r.AddRoute("POST", "/v1", "/feed_follows", cfg.MiddlewareAuth(cfg.HandlerCreateFeedFollow))
+	r.AddRoute("DELETE", "/v1", "/feed_follows", cfg.MiddlewareAuth(cfg.HandlerDeleteFeedFollow))
 	r.Run()
 }
