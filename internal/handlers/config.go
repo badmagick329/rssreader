@@ -4,10 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"time"
 
 	"github.com/badmagick329/rssreader/internal/database"
-	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
@@ -33,15 +31,7 @@ func (cfg *Config) Close() error {
 	return cfg.conn.Close()
 }
 
-func (cfg *Config) ClearDB(ctx context.Context) error {
-	return cfg.DB.RemoveAllUsers(ctx)
-}
-
-func GetCreateParams(name string) database.CreateUserParams {
-	return database.CreateUserParams{
-		ID:        uuid.New(),
-		Name:      name,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+func (cfg *Config) ClearDB(ctx context.Context) {
+	cfg.DB.RemoveAllUsers(ctx)
+	cfg.DB.RemoveAllFeeds(ctx)
 }

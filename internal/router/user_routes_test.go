@@ -18,10 +18,6 @@ import (
 	"github.com/badmagick329/rssreader/internal/handlers"
 )
 
-const DB_URL = "postgres://test:test@localhost:5433/test?sslmode=disable"
-const APIKEY_LEN = 64
-const ID_LEN = 16
-
 func TestHealthz(t *testing.T) {
 	t.Run("v1/healthz returns 200", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/v1/healthz", nil)
@@ -50,18 +46,18 @@ func TestCreateUser(t *testing.T) {
 	}{
 		"valid user": {
 			body:      requestBody1,
-			wantCode:  201,
+			wantCode:  http.StatusCreated,
 			wantBody:  "",
 			validName: "tim",
 		},
 		"empty body": {
 			body:     emptyBody,
-			wantCode: 400,
+			wantCode: http.StatusBadRequest,
 			wantBody: "",
 		},
 		"empty name": {
 			body:     bytes.NewReader([]byte(`{"name":""}`)),
-			wantCode: 400,
+			wantCode: http.StatusBadRequest,
 			wantBody: "",
 		},
 	}
@@ -132,7 +128,8 @@ func TestGetUserSuccess(t *testing.T) {
 			request, _ := http.NewRequest(http.MethodGet, "/v1/users", nil)
 			request.Header.Set(auth.API_KEY_HEADER, "ApiKey "+tc.apikey)
 			response := httptest.NewRecorder()
-			cfg.HandlerGetUser(response, request)
+			// cfg.HandlerGetUser(response, request)
+			cfg.MiddlewareAuth(cfg.HandlerGetUserAuthed)(response, request)
 			got := response.Code
 			if got != tc.wantCode {
 				t.Errorf("got %d, want %d", got, tc.wantCode)
@@ -169,11 +166,11 @@ func TestGetUserFail(t *testing.T) {
 	}{
 		"no apikey": {
 			apikey:   "",
-			wantCode: 400,
+			wantCode: http.StatusBadRequest,
 		},
 		"invalid apikey": {
 			apikey:   "ApiKey 1234567890123456789012345678901234567890123456789012345678901234",
-			wantCode: 403,
+			wantCode: http.StatusUnauthorized,
 		},
 	}
 	cfg := handlers.New(DB_URL)
@@ -186,7 +183,7 @@ func TestGetUserFail(t *testing.T) {
 			request, _ := http.NewRequest(http.MethodGet, "/v1/users", nil)
 			request.Header.Set(auth.API_KEY_HEADER, tc.apikey)
 			response := httptest.NewRecorder()
-			cfg.HandlerGetUser(response, request)
+			cfg.MiddlewareAuth(cfg.HandlerGetUserAuthed)(response, request)
 			got := response.Code
 			if got != tc.wantCode {
 				t.Errorf("got %d, want %d", got, tc.wantCode)
@@ -198,7 +195,7 @@ func TestGetUserFail(t *testing.T) {
 func CreateDummyUsers(cfg *handlers.Config, ctx context.Context, n int) []database.User {
 	users := []database.User{}
 	for i := 0; i < n; i++ {
-		createParams := handlers.GetCreateParams(fmt.Sprintf("user%d", i))
+		createParams := handlers.GetUserCreateParams(fmt.Sprintf("user%d", i))
 		user, err := cfg.DB.CreateUser(ctx, createParams)
 		if err != nil {
 			log.Fatalf("Error creating user: %s", err)

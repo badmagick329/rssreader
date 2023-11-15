@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/badmagick329/rssreader/internal/auth"
+	"github.com/badmagick329/rssreader/internal/database"
 	"github.com/badmagick329/rssreader/internal/utils"
 )
 
@@ -27,7 +28,7 @@ func (cfg *Config) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, 400, "Invalid body")
 		return
 	}
-	createParams := GetCreateParams(params.Name)
+	createParams := GetUserCreateParams(params.Name)
 	// log.Printf("Creating user: %s", createParams.Name)
 	user, err := cfg.DB.CreateUser(r.Context(), createParams)
 	// log.Printf("Created user: %s", user.Name)
@@ -37,6 +38,14 @@ func (cfg *Config) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	returnUser := databaseUserToUser(user)
 	utils.RespondWithJSON(w, 201, returnUser)
+}
+
+func (cfg *Config) HandlerGetUserAuthed(
+	w http.ResponseWriter,
+	r *http.Request,
+	user database.User,
+) {
+	utils.RespondWithJSON(w, 200, databaseUserToUser(user))
 }
 
 func (cfg *Config) HandlerGetUser(w http.ResponseWriter, r *http.Request) {
