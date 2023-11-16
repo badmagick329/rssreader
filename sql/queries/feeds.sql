@@ -39,3 +39,15 @@ DELETE FROM
 
 -- name: GetFeedByID :one
 SELECT * FROM feeds WHERE id=$1;
+
+-- name: GetNextFeedsToFetch :many
+SELECT * FROM feeds
+ORDER BY fetched_at ASC NULLS FIRST
+LIMIT $1;
+
+-- name: MarkFeedAsFetched :one
+UPDATE feeds
+SET fetched_at = NOW(),
+updated_at = NOW()
+WHERE id = $1
+RETURNING *;
